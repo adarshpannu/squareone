@@ -45,8 +45,8 @@ impl<'a> Config<'a> {
             return Err("not enough arguments");
         }
 
-        let query = args[1].clone();
-        let filename = args[2].clone();
+        let query = args[1];
+        let filename = args[2];
 
         Ok(Config { query, filename })
     }
