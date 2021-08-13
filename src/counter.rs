@@ -25,11 +25,13 @@ impl Iterator for Counter {
 #[test] 
 fn test() {
     let ctr = Counter::new(10);
-    let iter = ctr;
 
-    for e in iter {
+    for e in ctr {
         println!("elem: {}", e)
     }
-    println!("Test")
+    println!("Test");
+
+    let sm: u32 = Counter::new(101).sum();
+    println!("sum = {}", sm)
 }
 
