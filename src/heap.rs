@@ -1,15 +1,23 @@
-use rand::Error;
+// heap (priority queue)
+
+use std::cmp::Ordering;
 
 #[derive(Debug)]
-struct Heap<T: PartialOrd> {
+struct Heap<T, CMPFN>
+where
+    CMPFN: Fn(&T, &T) -> bool, {
     arr: Vec<Option<T>>,
+    cmpfn: CMPFN, // Return true if arg1 has higher priority than arg2
 }
 
-impl<T: PartialOrd> Heap<T> {
-    fn new(capacity: usize) -> Heap<T> {
-        let mut arr = Vec::with_capacity(capacity + 1);
+impl<T, CMPFN> Heap<T, CMPFN>
+where
+    CMPFN: Fn(&T, &T) -> bool,
+{
+    fn new(cmpfn: CMPFN) -> Self {
+        let mut arr = Vec::new();
         arr.push(None);
-        Heap { arr }
+        Heap { arr, cmpfn }
     }
 
     fn push(&mut self, elem: T) {
@@ -29,10 +37,6 @@ impl<T: PartialOrd> Heap<T> {
         }
     }
 
-    fn is_left_child(idx: usize) -> bool {
-        idx % 2 == 0
-    }
-
     fn get(&self, idx: usize) -> &T {
         self.arr[idx].as_ref().unwrap()
     }
@@ -42,7 +46,7 @@ impl<T: PartialOrd> Heap<T> {
         while idx > 1 {
             let parent = self.get(idx / 2);
             let child = self.get(idx);
-            if child < parent {
+            if (self.cmpfn)(child, parent) {
                 self.arr.swap(idx, idx / 2);
             }
             idx = idx / 2;
@@ -53,7 +57,7 @@ impl<T: PartialOrd> Heap<T> {
         let mut minidx = idx;
         for childidx in vec![2 * idx, 2 * idx + 1] {
             if (childidx < self.arr.len())
-                && (self.get(childidx) < self.get(minidx))
+                && (self.cmpfn)(self.get(childidx), self.get(minidx))
             {
                 minidx = childidx;
             }
@@ -74,18 +78,53 @@ impl<T: PartialOrd> Heap<T> {
     }
 }
 
-#[test]
-fn test() {
-    println!("Heap");
+#[cfg(test)]
+mod tests {
+    use crate::heap::*;
 
-    let mut heap: Heap<i32> = Heap::new(100);
-    for elem in vec![17, 12, 0, 3, 200] {
-        heap.push(elem);
+    fn run_heap_test(input: Vec<String>) {
+        let mut input_sorted = input.clone();
+        input_sorted.sort();
+
+        let mut results = vec![];
+
+        let mut heap: Heap<String, _> =
+            Heap::new(|e1: &String, e2: &String| e1.cmp(e2) == Ordering::Less);
+        for elem in input {
+            heap.push(elem);
+        }
+
+        while let Some(elem) = heap.pop() {
+            results.push(elem);
+        }
+        //dbg!(&results);
+        //dbg!(&input_sorted);
+        assert_eq!(&results, &input_sorted);
     }
-    dbg!(&heap);
 
-    while let Some(elem) = heap.pop() {
-        println!("min = {}", elem);
-        //dbg!(&heap);
+    #[test]
+    fn test1() {
+        let input: Vec<_> = vec![
+            "hello", "world", "here", "comes", "rust", "to", "rule", "you",
+            "all",
+        ]
+        .iter()
+        .map(|e| e.to_string())
+        .collect();
+        run_heap_test(input);
+    }
+
+    #[test]
+    fn test2() {
+        let input: Vec<_> =
+            vec!["hello"].iter().map(|e| e.to_string()).collect();
+        run_heap_test(input);
+    }
+
+    #[test]
+    fn test3() {
+        let input: Vec<String> =
+            vec![].iter().map(|e: &String| e.to_string()).collect();
+        run_heap_test(input);
     }
 }
