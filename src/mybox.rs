@@ -9,7 +9,6 @@ fn test_main() {
 
     let star_bx = *bx;
 
-    
     println!("*px = {}", *px);
     println!("*bx = {}", *bx);
 }
