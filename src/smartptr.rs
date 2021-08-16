@@ -22,3 +22,6 @@ fn test() {
     let sp = SmartPtr::new(10);
     println!("Hello: {}", *sp);
 }
+
+
+
