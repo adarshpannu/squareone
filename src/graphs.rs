@@ -1,47 +1,82 @@
+#![warn(missing_debug_implementations)]
 
-use std::cell::RefCell;
+use std::{borrow::Borrow, cell::RefCell};
 use typed_arena::Arena;
 
 pub type NodeId = usize;
 
+#[derive(Debug)]
 enum RelOpType {
-    Ne, Eq
+    Ne,
+    Eq,
 }
 
+#[derive(Debug)]
 enum Expr {
     RelOp(RelOpType),
     Int(usize),
     Bool(bool),
-    Var(String)
+    Var(String),
+    Star,
+    Select
 }
 
 use Expr::*;
+#[derive(Debug)]
 struct Node<'a> {
     pub inner: Expr,
-    pub children: RefCell<Option<Vec<&'a Node<'a>>>>
+    pub children: RefCell<Vec<&'a Node<'a>>>,
 }
 
 impl<'a> Node<'a> {
-    pub fn new(inner: Expr, children: Option<Vec<&'a Node<'a>>>) -> Self {
+    pub fn new(inner: Expr, children: Vec<&'a Node<'a>>) -> Self {
         Node {
             inner,
             children: RefCell::new(children),
         }
     }
+
+    pub fn print(&self) {}
+}
+
+pub struct Foo { id: usize }
+
+
+pub fn foo() {
+
 }
 
 #[test]
-fn test() {    
-    let arena = Arena::new();
+pub fn test() {
+    let arena: Arena<Node> = Arena::new();
 
-    let int1 = arena.alloc(Node::new(Int(10), None));
-    let int2 = arena.alloc(Node::new(Int(20), None));
-    let relop = arena.alloc(Node::new(RelOp(RelOpType::Eq), Some(vec![int1, int2])));
-
-    let v = relop.children.borrow().as_ref().unwrap()[0];
-
+    populate(&arena);
 }
 
+fn add_node<'a>(arena: &'a Arena<Node<'a>>, inner: Expr, children: Vec<&'a Node<'a>>) -> &'a Node<'a> {
+    //let children = children.unwrap_or(vec![]);
+    //let node = Node::new(inner, children);
+    arena.alloc(Node::new(inner, children))
+}
 
+fn populate<'a>(arena: &'a Arena<Node<'a>>) {
+    // select col1, (1 == 2), *
 
+    let col = arena.alloc(Node::new(Int(10), vec![]));
+    let int1 = arena.alloc(Node::new(Int(10), vec![]));
+    let int2 = arena.alloc(Node::new(Int(20), vec![]));
+    let int3 = arena.alloc(Node::new(Int(30), vec![]));
 
+    dbg!(&int1);
+    dbg!(&int2);
+    dbg!(&int3);
+
+    let relop = arena.alloc(Node::new(RelOp(RelOpType::Eq), vec![int1, int2]));
+    dbg!(&relop);
+
+    let mut v = relop.children.borrow_mut();
+    v.push(int3);
+    v.push(relop);
+
+    dbg!(&relop);
+}
